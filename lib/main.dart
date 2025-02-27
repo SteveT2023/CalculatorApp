@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:expressions/expressions.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,35 +13,57 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Calculator',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromARGB(255, 221, 97, 9)),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Calculator App'),
+      home: const CalculatorScreen(title: 'Calculator App'),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+class CalculatorScreen extends StatefulWidget {
+  const CalculatorScreen({super.key, required this.title});
   final String title;
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<CalculatorScreen> createState() => _CalculatorScreenState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  String _display = '';
+class _CalculatorScreenState extends State<CalculatorScreen> {
+  String _expression = '';
 
-  void _buttonPress(String value) {
+  void _onButtonPressed(String value) {
     setState(() {
-      _display += value;
+      if (value == '=') {
+        _evaluateExpression();
+      } else if (value == 'Clear') {
+        _clearExpression();
+      } else {
+        _expression += value;
+      }
     });
   }
 
-  void _cleanDisplay() {
+  void _clearExpression() {
     setState(() {
-      _display = '';
+      _expression = '';
     });
+  }
+
+  void _evaluateExpression() {
+    try {
+      final expression = Expression.parse(_expression);
+      final evaluator = const ExpressionEvaluator();
+      final result = evaluator.eval(expression, {});
+
+      setState(() {
+        _expression = result.toString();
+      });
+    } catch (e) {
+      setState(() {
+        _expression = 'Error';
+      });
+    }
   }
 
   @override
@@ -57,20 +80,20 @@ class _MyHomePageState extends State<MyHomePage> {
               alignment: Alignment.centerRight,
               padding: const EdgeInsets.all(20),
               child: Text(
-                _display,
+                _expression,
                 style: Theme.of(context).textTheme.headlineMedium,
               ),
             ),
           ),
           Expanded(
-            flex: 3,
+            flex: 2,
             child: GridView.count(
               crossAxisCount: 4,
               children: <Widget>[
-                _calcButton('7'), _calcButton('8'), _calcButton('9'), _calcButton('Clear'),
-                _calcButton('4'), _calcButton('5'), _calcButton('6'), _calcButton('*'),
-                _calcButton('1'), _calcButton('2'), _calcButton('3'), _calcButton('/'),
-                _calcButton('0'), _calcButton('+'), _calcButton('-'), _calcButton('='),
+                calcButton('7'), calcButton('8'), calcButton('9'), calcButton('Clear'),
+                calcButton('4'), calcButton('5'), calcButton('6'), calcButton('*'),
+                calcButton('1'), calcButton('2'), calcButton('3'), calcButton('/'),
+                calcButton('0'), calcButton('+'), calcButton('-'), calcButton('='),
               ],
             ),
           ),
@@ -79,15 +102,9 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  Widget _calcButton(String value) {
+  Widget calcButton(String value) {
     return ElevatedButton(
-      onPressed: () {
-        if (value == 'Clear') {
-          _cleanDisplay();
-        } else {
-          _buttonPress(value);
-        }
-      },
+      onPressed: () => _onButtonPressed(value),
       child: Text(value, style: const TextStyle(fontSize: 20)),
     );
   }
