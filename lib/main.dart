@@ -56,6 +56,12 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       final evaluator = const ExpressionEvaluator();
       final result = evaluator.eval(expression, {});
 
+      if (_expression.contains('/0')) {
+        setState(() {
+          _expression = 'Error';
+        });
+        return;
+      }
       setState(() {
         _expression = result.toString();
       });
